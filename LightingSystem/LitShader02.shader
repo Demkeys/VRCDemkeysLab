@@ -129,9 +129,12 @@ Shader "DemkeysLab/LightingSystem/LitShader02"
                     diffuseCol += diffuse(lightIntensity[j], lightColor[j], L, N, d_falloff);
                     specularCol += specular(lightIntensity[j], L, N, R, i.specularV, d_falloff);
                 }
-                // This allows the lighting system to be used even when not in play mode,
-                // but this uses 4 other lights, instead of the custom lights in the
-                // scene. Use this for debugging purposes.
+                /* 
+                This is debugging code that creats a set of lights in the scene that can 
+                be used to light up the mesh. This code doesn't require a lighting system so
+                it can be used in situations where there's no LightingSystem and 
+                DebugLightingSystem
+                */
                 #elif LIGHTINGDEBUG == 1
                 float3 DebugLightPos = float3(-20,5,-20);
                 float PosSpacing = 7;
