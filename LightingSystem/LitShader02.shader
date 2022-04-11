@@ -21,6 +21,7 @@ Shader "DemkeysLab/LightingSystem/LitShader02"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
+            #pragma multi_compile_instancing
 
             #include "UnityCG.cginc"
             // #include "DemkeysLabCG.cginc" 
@@ -36,6 +37,7 @@ Shader "DemkeysLab/LightingSystem/LitShader02"
             struct appdata
             {
                 float4 vertex : POSITION;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
                 float3 normal : NORMAL;
                 float2 uv : TEXCOORD0;
             };
@@ -44,6 +46,7 @@ Shader "DemkeysLab/LightingSystem/LitShader02"
             {
                 float2 uv : TEXCOORD0;
                 float4 vertex : SV_POSITION;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
                 float3 camObjPos : TEXCOORD1;
                 float3 worldNormal : TEXCOORD2;
                 float4 vertexWorldPos : TEXCOORD3;
@@ -53,7 +56,10 @@ Shader "DemkeysLab/LightingSystem/LitShader02"
 
             sampler2D _MainTex;
             float4 _MainTex_ST;
-            fixed4 _MainCol;
+            UNITY_INSTANCING_BUFFER_START(Props)
+                UNITY_DEFINE_INSTANCED_PROP(float4, _MainCol)
+            UNITY_INSTANCING_BUFFER_END(Props)
+            // fixed4 _MainCol;
             sampler2D _EmissiveTex;
             fixed4 _EmissiveCol;
             fixed4 _SpecularCol;
@@ -72,6 +78,8 @@ Shader "DemkeysLab/LightingSystem/LitShader02"
             v2f vert (appdata v)
             {
                 v2f o;
+                UNITY_SETUP_INSTANCE_ID(v);
+                UNITY_TRANSFER_INSTANCE_ID(v, o);
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 o.camObjPos = mul(unity_WorldToObject, float4(_WorldSpaceCameraPos,1)).xyz;
@@ -107,9 +115,13 @@ Shader "DemkeysLab/LightingSystem/LitShader02"
 
             fixed4 frag (v2f i) : SV_Target
             {
+                UNITY_SETUP_INSTANCE_ID(i);
+                
                 // sample the texture
                 fixed4 col = 0;
-                fixed3 texCol = tex2D(_MainTex, i.uv).rgb * _MainCol.rgb;
+
+                float4 MainCol = UNITY_ACCESS_INSTANCED_PROP(Props, _MainCol);
+                fixed3 texCol = tex2D(_MainTex, i.uv).rgb * MainCol.rgb;
                 fixed4 emission = tex2D(_EmissiveTex, i.uv);
                 emission.rgb *= _EmissiveCol.rgb;
 
